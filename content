@@ -1,0 +1,449 @@
+ARKLADOM
+Especificação Técnica Executável - V4.1 Clareza Reforçada
+Documento consolidado com reorganização adicional para reduzir ambiguidades de implementação.
+
+Objetivo
+Servir como especificação clara para uma IA construtora de app entregar um beta jogável, visualmente forte e funcional.
+
+Escopo atual
+V1 com foco em combate, mesa multiplayer, gestão de cartas, turnos, d20, visibilidade parcial e controles do Mestre.
+
+Status
+Consolidado com base no arquivo original e nas respostas adicionais do autor durante a refinaria do projeto.
+
+
+1. Resumo executivo
+
+ARKLADOM é uma mesa digital dark fantasy de cardgame/RPG para até 5 jogadores e 1 Mestre, com sincronização em tempo real, informações ocultas por jogador e forte intervenção manual do narrador.
+
+A prioridade do produto é um beta jogável, bonito e estável, com foco em mouse, layout horizontal e efeitos suaves. O sistema precisa permitir cadastro manual de cartas, gestão de decks, combates, turnos, d20, visibilidade parcial, astrologia, mídia e administração total do Mestre.
+
+1A. Automação do sistema vs arbitragem do Mestre
+
+- Automático pelo sistema: sincronização em tempo real, compra por double click, envio da carta à mão, autoencaixe da carta no slot correto, bloqueios básicos por regra, cálculo de dano/armadura/vida, controle de turno ativo, glow do próximo personagem, logs, desfazer, salvamento automático ao fim de cada turno, renderização dos números sobre as cartas e hovers.
+- Manual pelo Mestre: efeitos do Deck Arkladom, bônus e penalidades narrativas, bônus de Luna, dobra de vida em certos inimigos sob Véktriz, alvos dos inimigos, alterações forçadas de atributos, atordoar, empurrões, escolhas arbitradas e qualquer exceção não automatizada explicitamente.
+- Regra operacional: quando houver conflito entre automação padrão e arbitragem do Mestre, o Mestre pode sobrescrever o estado da mesa. O sistema deve tratar o Mestre como autoridade máxima da sessão.
+
+1B. Estado persistente vs estado apenas da mesa atual
+
+- Persistente por conta/campanha do Mestre: cartas cadastradas, decks salvos, mídias, pastas, miniaturas, imagens, músicas, handouts, vídeos, NPCs, convenções de número de série e campanhas.
+- Persistente por jogador: fragmentos não gastos, histórico de fragmentos já consumidos naquele personagem, permissões por mesa e vínculo com decks recebidos pelo Mestre.
+- Apenas da mesa atual: posição dos avatares, cartas atualmente em mão, slots preenchidos, inimigos em combate, turnos, rodada, status visuais, carta atual do Deck Arkladom, descartes do combate e alterações temporárias de atributos mostradas na mesa.
+- Valor base cadastrado da carta nunca deve ser reescrito por efeitos temporários de combate; o sistema altera apenas o valor exibido na mesa enquanto aquela sessão estiver ativa.
+
+8A. Sequência operacional de uma rodada
+
+1. Início da rodada: restaurar Armadura e Deslocamento ao valor total de personagens e inimigos; aplicar mudanças de tempo/astros já definidas pelo Mestre.
+2. Turno do jogador ativo: pode comprar por double click, mover avatar, jogar cartas permitidas, usar habilidades válidas e declarar ataque simples.
+3. Encerramento do turno: o próprio jogador clica no status Turno; o Mestre pode forçar o encerramento se necessário; o glow passa ao próximo personagem na ordem de iniciativa.
+4. Após todos os jogadores: cada inimigo realiza 1 ataque, resolvido pelo Mestre na ordem de iniciativa.
+3A. Matriz resumida de permissões
+
+- Jogador comum: vê a própria mão e próprios slots; compra, joga cartas, move o próprio avatar, ataca e usa recursos permitidos; não vê a mão nem os slots privados dos aliados.
+- Mestre: vê tudo, altera qualquer atributo, controla inimigos, usa Deck Arkladom, aplica efeitos manuais, pausa a mesa, atordoa, move avatares, move inimigos, entra em Mostrar Jogo e atua sem travas.
+- Jogador com permissão temporária de moderador: deve herdar apenas os controles que o Mestre conceder naquela mesa; por padrão, trata-se como perfil de Mestre enquanto a autorização estiver ativa, e volta ao perfil comum quando a permissão for removida.
+
+5. Após os ataques dos inimigos: o Mestre joga 1 carta do Deck Arkladom contra cada jogador; se Véktriz estiver ativa, joga 1 carta extra por personagem.
+6. Fim da rodada: a mesa permanece no estado resultante; o próximo ciclo começa somente quando o Mestre iniciar a nova rodada.
+
+2. Escopo por fases
+
+V1 - Obrigatório
+
+- Login por e-mail, login e senha; entrada em mesa por convite de Mestre.
+- Mesa multiplayer em tempo real com reconexão carregando o estado atual.
+- Cadastro manual de cartas, decks e conteúdos principais do Mestre.
+- Mão do jogador, slots, compra por double click, jogar cartas e ataque simples.
+- Ordem de turno por iniciativa, d20 padrão e d20 Crueldade.
+- Deck Confronto, Deck Arkladom, avatares e formação do grupo.
+- Astrologia, clima, música e exibição de NPC, handout e vídeo.
+- Log discreto, botão de desfazer real e salvamento automático ao fim de cada turno.
+
+V2 / posterior
+
+- Automatizações extras de cartas especiais e efeitos narrativos hoje mantidos no controle manual do Mestre.
+- Melhorias de UX, otimizações de mídia, compressão avançada e ferramentas adicionais de organização do acervo.
+
+3. Perfis, permissões e acesso
+
+Regra
+Definição
+
+Capacidade da mesa
+Máximo de 5 players + 1 Mestre. Um dos próprios players pode assumir o papel de Mestre quando autorizado.
+
+Entrada em mesa
+Por convite de um Mestre.
+
+Permissão de Mestre
+As áreas do Menu do Mestre só podem ser acessadas por quem tem essa permissão. Um Mestre pode conceder e remover essa autorização em uma mesa específica.
+
+Papel por mesa
+O mesmo usuário pode ser Mestre em uma mesa e jogador em outra.
+
+Poder do Mestre
+O Mestre pode ver, mover e alterar qualquer elemento do jogo em qualquer momento, sem travas de regra.
+
+
+4. Persistência, mesas e campanhas
+
+- A mesa começa limpa na primeira criação, mas continua de onde parou na sessão seguinte.
+- Deve existir a ação do Mestre chamada Limpar Mesa.
+- O sistema deve permitir várias mesas e campanhas salvas.
+- Campanhas são separadas; estados são separados.
+- Ao reconectar, o jogador recebe o estado mais recente da mesa com todas as alterações feitas na ausência dele.
+- Salvamento automático ao fim de cada turno.
+- O Mestre também pode criar saves manuais.
+- Conteúdo cadastrado pelo Mestre deve ficar salvo permanentemente por conta/campanha.
+- Deve existir backup/exportação para proteger o trabalho de cadastro.
+
+5. Layout geral da mesa
+
+- Layout horizontal fixo. Em celular, o uso previsto é em modo paisagem.
+- O menu lateral esquerdo é retrátil e sobreposto, não empurra a mesa.
+- A visão padrão do jogador inclui, de cima para baixo: slot único de chefe, fileira de Inimigos 2, fileira de Inimigos 1, fileira de Personagens aliados e Guardiões, fileira dos próprios slots, e a mão na parte inferior.
+- À esquerda ficam menu e botões de ação. À direita ficam avatares/formação, d20, resultados recentes, astrologia, deck e descarte.
+- Os slots vazios mostram apenas o frame transparente do slot e o pano de fundo da cena.
+- A interface não se reorganiza quando há menos jogadores; a fileira de Personagens/Guardiões apenas fica mais vazia.
+
+Slots do jogador
+
+- Ordem fixa: Personagem, Defesa, Bônus 1, Bônus 2, Passiva 1, Passiva 2, Passiva 3, Arma, Armadura, Artefato 1, Artefato 2, Concentração.
+- Artefato 2 fica parcialmente sob Artefato 1, deslocado para a direita.
+
+Crops e hover
+
+- Cartas em slots e inimigos ficam em crop: nome + arte visíveis; barra de tipo e box de texto ocultos no slot.
+- Cartas de Personagem na fileira de Personagens/Guardiões aparecem inteiras, com todos os atributos numéricos visíveis.
+- Hover é proporcional ao tamanho da tela, mantendo como mínimo o tamanho real de uma carta de MTG.
+
+6. Visibilidade, informação oculta e hover
+
+- Jogadores veem dos aliados apenas o avatar e a carta de Personagem.
+- A mão é sempre invisível para outros jogadores.
+- Jogadores não veem as cartas dos slots dos aliados.
+- Inimigos são sempre públicos para todos.
+- Hover privado: fora do turno, cada jogador vê apenas seu próprio hover.
+- Hover público: durante o turno atual, o hover das cartas privadas do jogador ativo é revelado a todos para explicar o que ele está fazendo.
+- Clicar na carta de Personagem de outro jogador não executa ação; a leitura detalhada é por hover.
+- Mostrar Jogo é uma visualização privada do Mestre.
+
+7. Formação e avatares
+
+- Grid de formação com 10 espaços: 3 na frente, 4 no meio e 3 atrás.
+- Os espaços devem ser grandes o bastante para mostrar bem o rosto/avatar do personagem.
+- Mais de um avatar pode ocupar o mesmo espaço. Nesse caso, ficam anexados com sobreposição parcial para indicar proteção ou carregamento.
+- Não há ordem específica na sobreposição.
+- Deslocamento padrão é 1 e pode ser alterado por cartas, efeitos ou condições.
+- O jogador move o avatar arrastando. O sistema deve impedir movimento acima do permitido.
+- O Mestre também pode mover avatares contra a vontade do jogador.
+- Não haverá sistema visual de posição para inimigos; isso é resolvido por narração.
+
+9A. Fórmula operacional do d20
+
+- O valor natural do d20 deve sempre ser mostrado exatamente como foi rolado. Esse número não é “editado” na tela por bônus ou penalidades.
+- Acerto e Evasão produzem um modificador líquido de dificuldade. Esse modificador altera o limiar de sucesso/falha do teste, e não o número natural mostrado no d20.
+- Exemplo conceitual: se o modo Crueldade exige acima de 10 e o modificador líquido for +2 a favor do atacante, o sistema deve tratar o teste como mais fácil, mantendo ainda visível o valor natural e o modificador pequeno para conferência.
+- Exemplo conceitual: se o defensor gerar um redutor líquido, o teste fica mais difícil, mas o valor natural rolado continua igual na interface.
+- Exceções absolutas: 1 natural sempre falha; 20 natural sempre acerta; no modo Crueldade, 1 natural gera Crueldade e 20 natural gera Moral.
+
+8. Turno, rodada e iniciativa
+
+- Rodada = conjunto de todos os turnos dos jogadores + ações dos inimigos.
+- Turno = conjunto de ações e jogadas de um único jogador ou inimigo.
+- A ordem é definida por iniciativa. Empates são decididos pelos próprios empatados.
+- O jogador encerra o turno clicando no status Turno. O Mestre pode forçar o encerramento.
+- Ao fim do turno de um jogador, o avatar do próximo personagem na iniciativa recebe glow para indicar a vez.
+- No início da rodada, armadura e deslocamento de personagens e inimigos voltam ao valor total.
+- Cada inimigo realiza 1 ataque por rodada e depois o Mestre joga 1 carta do Deck Arkladom contra cada jogador.
+
+9. Regras do d20
+
+- Modo padrão: sucesso com resultado acima de 8.
+- Modo Crueldade: sucesso com resultado acima de 10.
+- 10 é falha; 1 natural é sempre falha; 20 natural é sempre acerto e não pode ser cancelado.
+- 1 e 20 naturais sempre têm som e glow especial, no modo padrão e no modo Crueldade.
+- No modo Crueldade, 1 natural gera Crueldade e 20 natural gera Moral.
+- Os modificadores não alteram o valor natural rolado; eles alteram o limiar prático de sucesso/falha. O valor natural continua visível.
+- Na interface principal deve aparecer o d20 puro, a indicação Sucesso/Falha e os modificadores em números pequenos para conferência.
+
+10. Moral e Crueldade
+
+- Moral e Crueldade não têm limite máximo e não podem ficar negativos.
+- Cartas do Deck Arkladom podem escalar com Crueldade. Após a resolução de um efeito ampliado por Crueldade, o alvo perde 1 ponto de Crueldade.
+
+12A. Status visuais e travas reais do sistema
+
+- Status de Compra, Aura e Turno funcionam como lembretes visuais para o jogador, mas não são apenas decorativos.
+- O sistema também deve bloquear a ação inválida correspondente. Exemplo: se o status de Aura já foi gasto e não houver bônus extra, a segunda carta com custo em Aura deve ser recusada pelo sistema mesmo que o jogador tente arrastar a carta.
+- Da mesma forma, compra, encerramento de turno e atordoamento devem ter reflexo visual e também trava lógica real.
+- O jogador pode consumir 1 ponto de Moral para diminuir Crueldade.
+- Moral pode repetir 1 teste de d20 que não seja 1 natural, conceder bônus sociais importantes e criar vantagens narrativas aprovadas pelo Narrador.
+- O Narrador pode alterar Moral e Crueldade manualmente clicando com botão direito sobre o avatar do jogador.
+- O jogador só pode reduzir a própria Moral, anunciando a ação e clicando na opção correspondente no próprio avatar.
+- É importante haver registro acessível de ganhos e gastos de Moral e Crueldade.
+
+13A. Destino padrão das cartas e peças de mesa
+
+- Carta descartada do jogador: vai para o descarte e fica inacessível, salvo habilidade específica que a recupere.
+- Carta consumida: sai do slot ou da mão e vai para o descarte, a menos que a regra específica determine outro destino.
+- Inimigo morto: sai da mesa e vai para o descarte do Deck Arkladom/Confronto usado naquela sessão, conforme a pilha operacional do combate.
+- Carta do Deck Arkladom usada: permanece em exibição central temporária, depois é arrastada ao descarte pelo Mestre.
+- Guardião removido ou carta trocada: deixa o slot correspondente e assume o destino definido pela ação (descarte, remoção ou substituição).
+
+11. Combate e ataque simples
+
+- Cada personagem pode fazer 1 ataque simples por rodada, salvo cartas raras que liberem ataques extras.
+- Ataque simples é o ataque físico básico do Personagem; ele é diferente de cartas de ataque.
+- O botão Ataque serve apenas para ataque simples.
+- Ao escolher um alvo, a seta de intenção fica visível para todos e aparecem as opções Atacar e Cancelar.
+- Cancelar afeta apenas a ação atual ainda não confirmada.
+- Se o ataque falhar, ainda assim consome a ação de ataque simples.
+- Por padrão, dano remove armadura antes da vida; exceções como Trevazuri ou Anti-Matéria podem atingir vida diretamente.
+- Quando derrotado, o personagem não pode atacar, mas ainda pode usar algumas cartas e efeitos.
+- Quando um inimigo morre, ele some da mesa e vai para o descarte do Deck Arkladom.
+
+12. Uso de cartas
+
+- Quase todas as cartas só podem ser baixadas no turno do jogador. Exceção: cartas Instantâneas podem ser usadas a qualquer momento.
+- Habilidades de cartas já baixadas podem ser usadas conforme a regra específica da carta.
+- Passivas, arma, armadura, artefato e guardião podem ser baixadas sem custo. O jogador já começa com 2 passivas à escolha em jogo.
+- Não existe limite de quantidade de cartas jogadas por turno além da mão disponível e das travas específicas de tipo/custo.
+- O status Aura é um lembrete sim/não para indicar se o jogador já baixou carta com custo em Aura naquele turno. Algumas cartas podem conceder +1 status de Aura.
+- Trilhas da Aura do tipo Bônus seguem a restrição da trilha, não a lógica de custo em Aura.
+- Cada tipo de carta entra automaticamente no slot correspondente. O jogador não reorganiza slots manualmente.
+- Uma carta pode sair do slot se tiver uso único, for destruída, consumida ou descartada.
+- A jogada pode ocorrer arrastando a carta para o slot ou por double click para autoencaixe.
+- Quando uma ação não pode ser feita, o sistema deve exibir uma mensagem com glow e som, como “Ação não pode ser feita!”.
+
+13. Compra, deck e descarte
+
+- Compra acontece por double click no deck, no turno do jogador. Não é automática e pode ser ignorada.
+- Existem efeitos que colocam cartas na mão por outros meios, como Vigor ou habilidades.
+- O status de compra branca é um lembrete visual: aceso = ainda não comprou; apagado = já comprou.
+- Se o deck acabar, o jogador não compra mais naquele combate e passa a depender mais do ataque simples.
+- O descarte não volta para o deck durante o combate, salvo habilidades específicas.
+- O deck é embaralhado ao iniciar o combate.
+- O Mestre pode ver o deck completo do jogador a qualquer momento.
+- O jogador pode ver o próprio descarte sempre, mas o próprio deck apenas antes do combate.
+
+14. Inimigos, slots e decks de combate
+
+- Há 16 slots de inimigos, em 2 fileiras de 8, numerados discretamente.
+- Os slots mais próximos da fileira de Personagens/Guardiões são considerados mais próximos; os superiores são mais distantes.
+- Double click no Deck Confronto invoca 1 inimigo direto na mesa, no slot vazio mais próximo disponível.
+- Se não houver slot vazio, a carta não entra; o máximo por combate é 16 inimigos.
+- Na fileira de Personagens e Guardiões, o máximo é 8 slots. Com 5 jogadores, restam 3 espaços para Guardiões.
+- Inimigos podem ser movidos apenas pelo Mestre, arrastando.
+- Inimigos têm Vida, Armadura, Dano, Acerto e Evasão visíveis o tempo todo; não têm Vigor, Aura nem esferas de Turno/Compra/Aura.
+- O ataque do inimigo usa a mesma lógica visual do ataque simples, mas alvo e resolução são totalmente manuais pelo Mestre.
+
+15. Deck Arkladom
+
+- Deck Arkladom e Deck Confronto são diferentes. Arkladom contém cartas de efeito; Confronto contém inimigos permanentes na mesa.
+- Double click no Deck Arkladom revela uma carta visível para todos. O Mestre lê, aplica os efeitos manualmente e arrasta a carta para o descarte.
+- No V1, Deck Arkladom precisa apenas de revelação, exibição central e descarte; os efeitos continuam manuais.
+- Subdecks podem ser somados temporariamente para formar um deck misto durante o combate, sem alterar os decks originais salvos.
+- A composição desses decks só pode ser editada antes ou depois do combate.
+
+16. Cadastro de cartas e decks
+
+Tipos oficiais de carta
+
+- Confronto: subtipos como Crias, Bestas, Raças etc.
+- Arkladom: subtipos por campanha/região, como Bella Véktriz e Muralha Sombria.
+- Aura: subtipos Racial, Física e Principal.
+- Personagem: subtipos Guardião e Personagem.
+- Item: subtipos Arma, Armadura e Artefato.
+- Cada tipo principal possui verso próprio.
+
+Campos obrigatórios por tipo
+
+Tipo
+Campos
+
+Confronto
+Nome, Tipo, Subtipo, Iniciativa, Armadura, Vida, Dano, Acerto, Evasão, Texto, Nº de série, Raridade.
+
+Arkladom
+Nome, Tipo, Subtipo, Dano (se houver), Texto, Nº de série, Raridade.
+
+Aura
+Nome, Tipo, Subtipo, Custo, Texto, Nº de série, Raridade.
+
+Personagem
+Nome, Tipo, Subtipo, Reserva de Aura, Vigor, Iniciativa, Armadura, Vida, Dano, Acerto, Evasão, Texto, Nº de série, Raridade.
+
+Item
+Nome, Tipo, Subtipo, Preço Médio, Texto, Armadura (se houver), Dano (se houver), Nº de série, Raridade.
+
+- Cadastro oficial apenas em PNG. O sistema pode gerar versões comprimidas/cropadas para uso em mesa.
+- Os números são renderizados pelo sistema em posições padrão sobre a arte.
+- Cadastro é manual, carta por carta; depois pode ser editado.
+- O sistema automatiza testes, redução de armadura, dano e ganho de vida durante a mesa.
+- O número de série é o identificador principal e deve ser gerado automaticamente segundo a convenção do autor.
+- Decks podem repetir cartas.
+
+17. Fragmentos Celestes
+
+- Fragmentos pertencem ao jogador permanentemente, inclusive entre campanhas, enquanto não forem gastos.
+- Ao gastar um fragmento, o valor exibido na mesa é alterado, mas o valor base da carta cadastrada não muda.
+- O uso exige confirmação. O Mestre não precisa aprovar antes.
+- Todos os fragmentos são adicionados manualmente pelo Mestre; a carta ganha por Opala também é adicionada manualmente.
+- Nem todos têm efeito automático no sistema; Ametista, por exemplo, gera habilidades controladas na ficha presencial.
+- Não há limite formal de uso; o recurso é raro por natureza.
+- A tela de Fragmentos do jogador deve mostrar quantidade atual e histórico/gasto acumulado por tipo, preferencialmente em formato numérico.
+- Fragmentos podem ser removidos pelo Mestre. Fora disso, são consumidos normalmente ao usar.
+
+18. Astrologia, clima, música, NPCs e mídia
+
+- Astrologia entra no V1.
+- A esfera tem 4 estados fixos, como Manhã, Tarde, Noite e Madrugada.
+- Double click na semi-esfera avança o tempo, fazendo a esfera girar e expor o novo momento do dia.
+- Luna ativa bônus não automáticos em cartas/personagens com habilidade Lunar.
+- Véktriz faz o Mestre usar 1 carta extra do Deck Arkladom contra cada personagem e pode dobrar a vida de alguns inimigos.
+- Loh’Tah aplica automaticamente +2 de Reserva de Aura e +1 status de Compra aos personagens dos jogadores, permitindo até 2 compras por turno.
+- Clima e música sincronizam para todos em tempo real, mas cada jogador regula seu próprio volume.
+- Pode haver exibição para Todos ou para um Personagem específico.
+- No máximo 1 handout, 1 NPC e 1 vídeo ativos ao mesmo tempo para não poluir a tela.
+- Música e clima persistem até o Mestre trocar.
+
+19. Mestre, controle manual e efeitos especiais
+
+- O Mestre pode editar qualquer atributo em tempo real durante a partida.
+- Cadastro/edição estrutural de cartas só ocorre fora da sessão, pelo Menu do Mestre.
+- Deve existir botão de pause exclusivo do Mestre.
+- Atordoar é um efeito manual do Mestre aplicado pelo menu do avatar do jogador; bloqueia ataque e uso/jogada de cartas até o fim do próximo turno daquele personagem.
+- O Mestre pode sobrescrever resultados automáticos quando necessário.
+- O Mestre pode aplicar dano, cura, modificadores, compra, descarte e reposicionamento manualmente.
+- Ao usar Mostrar Jogo, o Mestre passa a enxergar e controlar mão, slots, deck e descarte do jogador sem travas.
+
+20. Log, auditoria e desfazer
+
+- Deve existir um log visível, porém discreto e expansível.
+- Formato ideal: “Personagem: o que fez”.
+- Eventos mínimos no log: jogar cartas, fazer testes e mover avatar.
+- Deve existir desfazer real para corrigir ações erradas como anexar carta, descartar ou jogar algo no lugar errado.
+- Por padrão, todas as ações podem ser desfeitas.
+- Não há necessidade de ferramenta para revisar rodadas antigas.
+- A auditoria precisa ser suficiente para suportar o desfazer e consultar alterações importantes como Moral/Crueldade.
+
+21. Administração de arquivos e conteúdo
+
+- O Mestre pode criar, renomear, mover e excluir tudo que existir no acervo do sistema.
+- Adicionar arquivo deve abrir um seletor de arquivo simples, como no computador, sem exigir fluxo complexo de URLs ou navegação técnica.
+- O cadastro de cartas é manual, uma por uma, com todos os detalhes.
+- É obrigatório ter mecanismo de exportar/guardar os cadastros para não perder dezenas de horas de trabalho.
+- O sistema deve suportar milhares de cartas.
+- A organização interna pode seguir o modelo técnico mais adequado, desde que a UX para o Mestre permaneça simples.
+- Miniaturas automáticas são desejáveis para facilitar a localização de conteúdos.
+
+22. Requisitos técnicos
+
+- Formato recomendado: web app responsivo com acesso simples, foco em mouse e uso horizontal.
+- Objetivo do produto: beta jogável.
+- Banco de dados deve priorizar segurança e preservação de dados.
+- Sincronização precisa ser em tempo real: se um jogador agir, todos veem a alteração imediatamente.
+- Não há necessidade de grande escalabilidade; o alvo é até 6 pessoas simultâneas com estabilidade e boa aparência.
+- O sistema precisa funcionar bem com internet mediana.
+
+23. Direção visual e UX
+
+- Visual totalmente dark fantasy.
+- Fontes minimalistas; ícones em prata, dourado e preto.
+- Logo, fundos e artes serão fornecidos pelo autor.
+- A prioridade é estética forte, polida e bonita acima de tudo, sem sacrificar a jogabilidade básica.
+- As animações devem ser leves e suaves, com sensação moderna de UI, sem movimentos bruscos ou excessivamente rápidos.
+- Jogadores podem desligar os sons se quiserem.
+- É importante ter tela de configurações com volume, desempenho e opções básicas, preferencialmente gerada sem exigir desenho manual do autor.
+- Mestre e jogador usam a mesma base visual; mudam apenas botões e permissões.
+
+24. Critérios mínimos de aceite do V1
+
+- Cadastrar cartas.
+- Jogadores conectarem à mesa.
+- Receberem suas cartas/decks.
+- Abrirem a mão.
+- Comprarem cartas.
+- Jogarem cartas.
+- Determinarem ataques.
+
+Cinco ações prioritárias para o primeiro teste
+
+- Comprar carta.
+- Jogar carta.
+- Atacar.
+- Rolar d20.
+- Mover avatar.
+
+Erros mais graves, em ordem
+
+- Interface bugada.
+- Erro de cálculo gerando valores absurdos na tela.
+- Travamento de sincronização.
+
+25. Pendências não respondidas e decisão de fechamento
+
+- O autor decidiu encerrar a rodada de respostas antes de preencher todos os itens estratégicos e de produto.
+- As pendências restantes não impedem a construção do beta jogável porque o núcleo funcional já foi fechado.
+- Nos pontos ainda abertos, a IA construtora deve preferir decisões simples, reversíveis e consistentes com este documento, sem inventar automações extras que mudem a regra do jogo.
+
+26. Ordem recomendada de implementação
+
+- Autenticação, perfis e permissões por mesa.
+- Estado compartilhado da mesa, reconexão e salvamento ao fim do turno.
+- Layout base, slots, mão, deck, descarte e hover.
+- Cadastro de cartas e decks do Mestre.
+- Compra, jogar carta, ataque simples, d20 e ordem de turno.
+- Avatares, formação e controles do Mestre.
+- Deck Confronto e Deck Arkladom.
+- Log, desfazer, astrologia e mídia.
+- Polimento visual dark fantasy e otimização de desempenho.
+
+27. Encerramento
+
+Esta versão consolidada já é suficiente para orientar a construção de um beta jogável de ARKLADOM por ferramenta de IA. O documento fecha regras de combate, visibilidade, estrutura de mesa, poderes do Mestre, cadastro de conteúdo, persistência básica e direção visual.
+
+O que permanecer manual no V1 deve continuar sob intervenção do Mestre, sem que a ferramenta de IA invente regras automáticas adicionais.
+
+27A. Assumptions padrão para o beta jogável
+
+- Quando algum detalhe fino não tiver sido explicitamente decidido, a implementação deve escolher a opção mais simples, reversível e estável para o V1, sem criar automação narrativa excessiva.
+- Prioridade do beta: mesa jogável, bonita e estável para até 6 pessoas, com foco em mouse e sincronização correta.
+- Partes ainda abertas não devem bloquear a construção do V1; devem ser tratadas como configuração futura ou decisão de refinamento posterior.
+- A implementação não deve tentar transformar o projeto em videogame tático completo; a formação visual dos jogadores é apenas apoio ao teatro da mente do RPG.
+
+
+Atualização Final V4.2 — Status Visuais e Entrega Inicial para Codex
+
+Objetivo desta atualização: deixar explícito o uso do ícone de confirmação de status e orientar a primeira entrega ao Codex mesmo sem a pasta completa de assets visuais.
+
+1. Sistema de status com overlay visual
+
+Asset novo: /assets/icons/icon_checked.png
+
+O arquivo icon_checked é um overlay visual e não substitui o ícone base.
+Ele deve aparecer por cima do ícone original para indicar que a ação daquele status já foi consumida.
+
+Estados principais que usam overlay: Compra, Aura e Turno.
+
+Status Compra: após o jogador comprar carta no turno, o ícone de compra recebe overlay de icon_checked.
+Status Aura: após o jogador usar uma carta com custo de Aura no turno, o ícone de aura recebe overlay de icon_checked.
+Status Turno: após o jogador encerrar o turno, o ícone de turno recebe overlay de icon_checked.
+
+Reset dos status: Compra e Aura resetam no início da rodada; Turno reseta quando o próximo personagem assume o turno.
+
+O sistema deve validar a regra de uso, e não apenas exibir o overlay visual.
+
+2. Entrega inicial ao Codex sem assets completos
+
+É permitido iniciar a construção do beta jogável sem a pasta completa de imagens. Quando um asset visual não existir, o sistema deve usar placeholders simples temporários.
+A ausência inicial de assets não deve impedir a implementação da lógica principal do app.
+A prioridade da primeira entrega ao Codex deve ser funcionalidade: salas, sincronização, mão, compra, jogar carta, turno, avatar e combate inicial.
+Os assets reais poderão ser adicionados depois, substituindo os placeholders progressivamente sem reescrever a lógica central.
+
+3. Diretriz para o Codex
+
+Ao iniciar a construção, o Codex deve usar a especificação técnica como fonte principal de regras e assumir a seguinte instrução operacional:
+
+Implemente primeiro um beta jogável funcional usando placeholders onde faltarem assets. Não bloqueie a construção por ausência de imagens, sons ou ícones finais. Substituições visuais poderão ser feitas posteriormente sem alterar a lógica principal.
