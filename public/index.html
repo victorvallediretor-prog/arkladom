@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARKLADOM - Beta Fase 1</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <h1>ARKLADOM - Beta Fase 1</h1>
+        <div id="sessionBadge">Sem sessão</div>
+      </header>
+
+      <section id="lobby" class="panel">
+        <h2>Sistema de Sala</h2>
+        <div class="lobby-grid">
+          <label>
+            Nome
+            <input id="name" value="Jogador" />
+          </label>
+          <label>
+            Código da Sala
+            <input id="roomId" value="ARK001" maxlength="12" />
+          </label>
+          <div class="actions">
+            <button id="createRoomBtn">Criar sala (Mestre)</button>
+            <button id="joinRoomBtn">Entrar como jogador</button>
+            <button id="resumeBtn">Reconectar</button>
+          </div>
+        </div>
+        <p id="status" class="status"></p>
+      </section>
+
+      <section id="table" class="hidden">
+        <div class="table-layout">
+          <aside class="left-panel panel">
+            <h3>Controle de Turno</h3>
+            <p id="turnInfo">Turno não iniciado</p>
+            <button id="startTurnBtn">Iniciar Turnos</button>
+            <button id="nextTurnBtn">Próximo Turno</button>
+            <hr />
+            <h3>Jogadores</h3>
+            <ul id="playerList"></ul>
+          </aside>
+
+          <main class="battlefield panel">
+            <div class="row boss" id="bossSlot"></div>
+            <div class="row enemies" id="enemyRow2"></div>
+            <div class="row enemies" id="enemyRow1"></div>
+            <div class="row allies" id="allyRow"></div>
+            <div class="grid" id="formationGrid"></div>
+          </main>
+
+          <aside class="right-panel panel">
+            <h3>Seus Slots</h3>
+            <div id="mySlots" class="slots"></div>
+          </aside>
+        </div>
+
+        <section class="panel hand-panel">
+          <h3>Sua Mão</h3>
+          <div id="myHand" class="hand"></div>
+        </section>
+      </section>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
